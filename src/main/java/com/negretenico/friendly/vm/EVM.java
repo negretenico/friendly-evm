@@ -14,6 +14,7 @@ import java.math.BigInteger;
 import java.util.List;
 import java.util.Map;
 
+import static com.negretenico.friendly.config.OpCodeConfig.*;
 import static com.negretenico.friendly.service.MaskingService.mask;
 public class EVM {
     private final EVMStack stack;
@@ -56,167 +57,29 @@ public class EVM {
             PC +=1;
             gas= gasChargeService.charge(currentCode,gas);
             switch (currentCode.opCode()){
-                case STOP -> {
-                    return;
+                case OPCode code when miscOpCodes.contains(code) ->{
+                    break;
                 }
-                case ADD -> {
-                    Result<BigInteger> res =
-                            pairOperationService.handle(stack,
-                                    num-> num.stream().reduce(BigInteger::add).get());
-                    if(res.isFailure()) continue;
-                    pushGuard(mask(res.data()));
+                case  OPCode code when arithmeticCodes.contains(code)->{
+                    break;
                 }
-                case SUB -> {
-                    Result<BigInteger> res =
-                            pairOperationService.handle(stack,
-                                    num-> num.stream().reduce(BigInteger::subtract).get());
-                    if(res.isFailure()) continue;
-                    pushGuard(mask(res.data()));
+                case OPCode code when booleanArithmeticCodes.contains(code)->{
+                    break;
                 }
-                case MUL -> {
-                    Result<BigInteger> res = pairOperationService.handle(stack,
-                            (nums)->  nums.stream().reduce(BigInteger::multiply
-                    ).get());
-                    if(res.isFailure()) continue;
-                    pushGuard(mask(res.data()));
-
+                case OPCode code when memOpCodes.contains(code)->{
+                    break;
                 }
-                case DIV -> {
-                    Result<BigInteger> res =
-                            pairOperationService.handle(stack,
-                                    num-> num.stream().reduce(BigInteger::divide).get());
-                    if(res.isFailure()) continue;
-                    pushGuard(mask(res.data()));
-
+                case OPCode code when storeOpCodes.contains(code)->{
+                    break;
                 }
-                case MOD -> {
-                    Result<BigInteger> res =
-                            pairOperationService.handle(stack,
-                                    num-> num.stream().reduce(BigInteger::mod).get());
-                    if(res.isFailure()) continue;
-                    pushGuard(mask(res.data()));
+                case OPCode code when jumpOpCodes.contains(code)->{
+                    break;
                 }
-                case SDIV -> {
-                }
-                case SMOD -> {
-                }
-                case ADDMOD -> {
-                }
-                case MULMOD -> {
-                }
-                case PUSH1 -> {
-                    if (PC >= codes.length) continue;
-                    EVMCode nextCode = codes[PC];
-                    PC += 1;
-                    BigInteger value = new BigInteger(nextCode.name(),16);
-                    pushGuard(mask(value));
-                }
-                case DUP1 -> {
-                }
-                case SWAP1 -> {
-                }
-                case MLOAD -> {
-                }
-                case MSTORE -> {
-                }
-                case MSTORE8 -> {
-                }
-                case SLOAD -> {
-                }
-                case SSTORE -> {
-                }
-                case JUMP -> {
-                }
-                case JUMPI -> {
-                }
-                case PC -> {
-                }
-                case JUMPDEST -> {
-                }
-                case EQ -> {
-                    Result<BigInteger> couple =
-                            pairOperationService.handle(stack, l ->{
-                                BigInteger first= l.getFirst();
-                                BigInteger second = l.getLast();
-                                int op = first.compareTo(second);
-                                return op == 0 ? BigInteger.ONE:
-                                        BigInteger.ZERO;
-                            });
-                    if(couple.isFailure()){
-                        continue;
-                    }
-                    pushGuard(mask(couple.data()));
-                }
-                case LT -> {
-                    Result<BigInteger> couple =
-                            pairOperationService.handle(stack, l ->{
-                                BigInteger first= l.getFirst();
-                                BigInteger second = l.getLast();
-                                int op = first.compareTo(second);
-                                return op <  0 ? BigInteger.ONE:
-                                        BigInteger.ZERO;
-                            });
-                    if(couple.isFailure()){
-                        continue;
-                    }
-                    pushGuard(mask(couple.data()));
-                }
-                case GT -> {
-                    Result<BigInteger> couple =
-                            pairOperationService.handle(stack, l ->{
-                                BigInteger first= l.getFirst();
-                                BigInteger second = l.getLast();
-                                int op = first.compareTo(second);
-                                return op > 0 ? BigInteger.ONE: BigInteger.ZERO;
-                            });
-                    if(couple.isFailure()){
-                        continue;
-                    }
-                    pushGuard(mask(couple.data()));
-
-                }
-                case ISZERO -> {
-                    Result<BigInteger> single =
-                            singleOperationService.handle(stack,bigInt->{
-                                int op = bigInt.compareTo(BigInteger.ZERO);
-                                return op==0? BigInteger.ONE: BigInteger.ZERO;
-                            });
-                    if(single.isFailure()){
-                        continue;
-                    }
-                    pushGuard(mask(single.data()));
-                }
-                case AND -> {
-                    Result<BigInteger> res =
-                            pairOperationService.handle(stack,
-                                    num-> num.stream().reduce(BigInteger::and).get());
-                    if(res.isFailure()) continue;
-                    pushGuard(mask(res.data()));
-                }
-                case OR -> {
-                    Result<BigInteger> res =
-                            pairOperationService.handle(stack,
-                                    num-> num.stream().reduce(BigInteger::or).get());
-                    if(res.isFailure()) continue;
-                    pushGuard(mask(res.data()));
-                }
-                case XOR -> {
-                    Result<BigInteger> res =
-                            pairOperationService.handle(stack,
-                                    num-> num.stream().reduce(BigInteger::xor).get());
-                    if(res.isFailure()) continue;
-                    pushGuard(mask(res.data()));
-                }
-                case NOT -> {
-                   Result<BigInteger> single =
-                           singleOperationService.handle(stack,
-                                   BigInteger::not);
-                   if(single.isFailure()){
-                       continue;
-                   }
-                    pushGuard(mask(single.data()));
-                }
-                default -> throw new RuntimeException();
+                case OPCode code when pushOpCodes.contains(code)->{}
+                case OPCode code when swapOpCodes.contains(code) ->{}
+                case OPCode code when dupOpCOdes.contains(code)->{}
+                default ->
+                        throw new IllegalStateException("Unexpected value: " + currentCode.opCode());
             }
         }
     }
