@@ -5,7 +5,7 @@ import com.negretenico.friendly.config.ArithmeticOpCodeHandler;
 import com.negretenico.friendly.config.NoOpHandler;
 import com.negretenico.friendly.models.EVMContext;
 import com.negretenico.friendly.models.OPCode;
-import com.negretenico.friendly.service.PairOperationService;
+import com.negretenico.friendly.service.StackOperationService;
 import org.springframework.stereotype.Service;
 
 import java.math.BigInteger;
@@ -15,10 +15,10 @@ import java.util.function.BiFunction;
 @Service
 public class ArithmeticService {
 
-    private final PairOperationService pairOperationService;
+    private final StackOperationService pairOperationService;
 
     // Each handler pops operands from the stack and applies the arithmetic function
-    private final Map<OPCode, BiFunction<EVMContext, PairOperationService, Result<BigInteger>>> handlers =
+    private final Map<OPCode, BiFunction<EVMContext, StackOperationService, Result<BigInteger>>> handlers =
             Map.ofEntries(
                     Map.entry(OPCode.ADD, (ctx, pos) -> pos.handle(ctx.stack(), ArithmeticOpCodeHandler::add)),
                     Map.entry(OPCode.SUB, (ctx, pos) -> pos.handle(ctx.stack(), ArithmeticOpCodeHandler::sub)),
@@ -31,7 +31,7 @@ public class ArithmeticService {
                     Map.entry(OPCode.MULMOD, (ctx, pos) -> pos.handleThree(ctx.stack(), ArithmeticOpCodeHandler::multMod))
             );
 
-    public ArithmeticService(PairOperationService pairOperationService) {
+    public ArithmeticService(StackOperationService pairOperationService) {
         this.pairOperationService = pairOperationService;
     }
 
@@ -41,7 +41,6 @@ public class ArithmeticService {
                 .apply(context, pairOperationService);
 
         if (res.isFailure()) {
-            // Optionally log here for debugging
             return;
         }
         context.pushGuard(res.data());

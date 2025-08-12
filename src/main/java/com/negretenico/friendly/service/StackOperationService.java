@@ -6,15 +6,19 @@ import com.negretenico.friendly.models.TriFunction;
 import org.springframework.stereotype.Service;
 
 import java.math.BigInteger;
-import java.util.List;
 import java.util.function.BiFunction;
-import java.util.function.Function;
-import java.util.function.Supplier;
-
-import static com.negretenico.friendly.service.MaskingService.mask;
 
 @Service
-public class PairOperationService {
+public class StackOperationService {
+    public Result<BigInteger> handleOne(EVMStack stack,
+                                        BiFunction<BigInteger, BigInteger, BigInteger> func) {
+        Result<BigInteger> x = stack.pop();
+        if (x.isFailure()) {
+            return Result.failure("Stack underflow on unary op");
+        }
+        return Result.success(func.apply(x.data(), BigInteger.ZERO));
+    }
+
     public Result<BigInteger> handle(EVMStack stack,
                                      BiFunction<BigInteger, BigInteger,BigInteger> supplier){
         Result<BigInteger> first = stack.pop();

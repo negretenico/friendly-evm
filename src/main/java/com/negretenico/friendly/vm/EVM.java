@@ -6,16 +6,15 @@ import com.negretenico.friendly.models.EVMCode;
 import com.negretenico.friendly.models.EVMStack;
 import com.negretenico.friendly.models.OPCode;
 import com.negretenico.friendly.service.GasChargeService;
-import com.negretenico.friendly.service.PairOperationService;
+import com.negretenico.friendly.service.StackOperationService;
 import com.negretenico.friendly.service.SingleOperationService;
 
-import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Map;
 
 import static com.negretenico.friendly.config.OpCodeConfig.*;
-import static com.negretenico.friendly.service.MaskingService.mask;
+
 public class EVM {
     private final EVMStack stack;
     private final Map<String, BigInteger> storage;
@@ -24,9 +23,9 @@ public class EVM {
     private final GasChargeService gasChargeService;
     private final EVMCode[] codes;
     private  int PC = 0;
-    private final PairOperationService pairOperationService;
+    private final StackOperationService pairOperationService;
     private final SingleOperationService singleOperationService;
-    public EVM(EVMStack stack, Map<String, BigInteger> storage, GasChargeService gasChargeService, EVMCode[] codes, PairOperationService pairOperationService, SingleOperationService singleOperationService) {
+    public EVM(EVMStack stack, Map<String, BigInteger> storage, GasChargeService gasChargeService, EVMCode[] codes, StackOperationService pairOperationService, SingleOperationService singleOperationService) {
         this.stack = stack;
         this.storage = storage;
         this.gasChargeService = gasChargeService;
