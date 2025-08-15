@@ -1,5 +1,6 @@
 package com.negretenico.friendly.models;
 
+import com.common.functionico.either.Either;
 import com.common.functionico.evaluation.Result;
 import com.negretenico.friendly.exception.StackSizeException;
 
@@ -32,4 +33,15 @@ public record EVMContext(EVMStack stack, Map<String, BigInteger> storage,
     public void storeLSB(int addressStart, byte lsb){
         memory[addressStart] = lsb;
     }
+    public EVMContext updatePC(int destination){
+        return  new EVMContext(stack,storage,memory,destination);
+    }
+    public Either<Boolean, Integer> jumpDestination(BigInteger dest) {
+        // For now, let's assume a simple check: valid if dest >= 0 and dest < memory.length
+        if(dest.compareTo(BigInteger.ZERO) < 0 || dest.intValue() >= memory.length){
+            return Either.left(false);
+        }
+        return Either.right(dest.intValue());
+    }
+
 }
