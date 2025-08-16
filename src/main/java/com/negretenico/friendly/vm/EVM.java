@@ -1,20 +1,14 @@
 package com.negretenico.friendly.vm;
 
 import com.common.functionico.evaluation.Result;
-import com.negretenico.friendly.exception.StackSizeException;
 import com.negretenico.friendly.models.EVMCode;
 import com.negretenico.friendly.models.EVMContext;
-import com.negretenico.friendly.models.EVMStack;
 import com.negretenico.friendly.models.OPCode;
 import com.negretenico.friendly.service.GasChargeService;
-import com.negretenico.friendly.service.StackOperationService;
 import com.negretenico.friendly.service.vm.*;
-import org.apache.logging.log4j.core.tools.picocli.CommandLine;
 import org.springframework.stereotype.Component;
 
 import java.math.BigInteger;
-import java.util.List;
-import java.util.Map;
 
 import static com.negretenico.friendly.config.OpCodeConfig.*;
 
@@ -25,7 +19,7 @@ public class EVM {
     private final EVMCode[] codes;
     private final StorageService service;
     private  final MemService memService;
-    private EVMContext context;
+    private EVMContext evmContext;
     private final MiscService miscService;
     private final ArithmeticService arithmeticService;
     private final BooleanArithmeticService booleanArithmeticService;
@@ -33,12 +27,12 @@ public class EVM {
     private final SwapService swapService;
     private final PushService pushService;
     private final DupService dupService;
-    public EVM(GasChargeService gasChargeService, EVMCode[] codes, StorageService service, MemService memService, EVMContext context, MiscService miscService, ArithmeticService arithmeticService, BooleanArithmeticService booleanArithmeticService, JumpService jumpService, SwapService swapService, PushService pushService, DupService dupService) {
+    public EVM(GasChargeService gasChargeService, EVMCode[] codes, StorageService service, MemService memService, EVMContext evmContext, MiscService miscService, ArithmeticService arithmeticService, BooleanArithmeticService booleanArithmeticService, JumpService jumpService, SwapService swapService, PushService pushService, DupService dupService) {
         this.gasChargeService = gasChargeService;
         this.codes = codes;
         this.service = service;
         this.memService = memService;
-        this.context = context;
+        this.evmContext = evmContext;
         this.miscService = miscService;
         this.arithmeticService = arithmeticService;
         this.booleanArithmeticService = booleanArithmeticService;
@@ -49,44 +43,48 @@ public class EVM {
     }
 
     public void run(){
-        int PC = context.PC();
+        int PC = evmContext.PC();
+        System.out.println("Starting the EVM");
+        System.out.println("Program counter "+PC);
+        System.out.println("Codes "+codes.length);
         while(PC < codes.length){
-            EVMCode currentCode = codes[context.PC()];
-            context = context.updatePC(context.PC() + 1); // ne
+            EVMCode currentCode = codes[evmContext.PC()];
+            evmContext = evmContext.updatePC(evmContext.PC() + 1); // ne
 
             gas= gasChargeService.charge(currentCode,gas);
+            System.out.println("Exectuing command "+currentCode.name());
             switch (currentCode.opCode()){
                 case STOP -> {
                     return;
                 }
                 case OPCode code when miscOpCodes.contains(code) ->{
-                    Result<BigInteger> update = miscService.handle(context,
+                    Result<BigInteger> update = miscService.handle(evmContext,
                             code);
-                    context = context.updatePC(update.data().intValue());
+                    evmContext = evmContext.updatePC(update.data().intValue());
                 }
                 case  OPCode code when arithmeticCodes.contains(code)->{
-                    arithmeticService.handle(context,code);
+                    arithmeticService.handle(evmContext,code);
                 }
                 case OPCode code when booleanArithmeticCodes.contains(code)->{
-                    booleanArithmeticService.handle(context,code);
+                    booleanArithmeticService.handle(evmContext,code);
                 }
                 case OPCode code when memOpCodes.contains(code)->{
-                    memService.handle(context,code);
+                    memService.handle(evmContext,code);
                 }
                 case OPCode code when storeOpCodes.contains(code)->{
-                    service.handle(context,code);
+                    service.handle(evmContext,code);
                 }
                 case OPCode code when jumpOpCodes.contains(code)->{
-                    jumpService.handle(context,code);
+                    jumpService.handle(evmContext,code);
                 }
                 case OPCode code when pushOpCodes.contains(code)->{
-                    pushService.handle(context,code);
+                    pushService.handle(evmContext,code);
                 }
                 case OPCode code when swapOpCodes.contains(code) ->{
-                    swapService.handle(context,code);
+                    swapService.handle(evmContext,code);
                 }
                 case OPCode code when dupOpCOdes.contains(code)->{
-                    dupService.handle(context,code);
+                    dupService.handle(evmContext,code);
                 }
                 default ->
                         throw new IllegalStateException("Unexpected value: " + currentCode.opCode());
