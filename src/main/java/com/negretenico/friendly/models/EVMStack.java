@@ -18,6 +18,18 @@ public class EVMStack {
         }
         return Result.success(stack.pop());
     }
+    public Result<BigInteger> peek(){
+        if(stack.isEmpty()){
+            return Result.failure("Stack: Underflow");
+        }
+        return Result.success(stack.peek());
+    }
+    public Result<BigInteger> peek(int i){
+        if (stack.isEmpty()){
+            return Result.failure("Stack:Peek :Underflow");
+        }
+        return Result.success(stack.elementAt(i));
+    }
     public Result<BigInteger> push(BigInteger item){
         if(stack.size()>=LIMIT){
             return Result.failure("We cannot add any items we've reached the " +
