@@ -1,13 +1,13 @@
-package com.negretenico.changeme;
+package com.negretenico.friendly;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class ChangemeApplication {
+public class FriendlyEvmApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(ChangemeApplication.class, args);
+		SpringApplication.run(FriendlyEvmApplication.class, args);
 	}
 
 }
